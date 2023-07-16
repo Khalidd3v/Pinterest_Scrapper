@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-container input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form-container input[type="submit"] {
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .success-message {
+            color: green;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>PintoDown Downloader</h1>
+    <div class="form-container">
+        <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="video_link" placeholder="Enter video link" required>
+            <br>
+            <input type="submit" value="Download">
+        </form>
+        {% if success %}
+            <p class="success-message">Video downloaded successfully!</p>
+        {% endif %}
+    </div>
+</body>
+</html>
