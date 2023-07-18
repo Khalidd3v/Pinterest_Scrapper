@@ -84,6 +84,7 @@ import requests
 import re
 from bs4 import BeautifulSoup
 from django.shortcuts import render
+from django.http import StreamingHttpResponse
 
 def home(request):
     if request.method == 'POST':
@@ -109,10 +110,9 @@ def home(request):
                 print(f"Canonical link found: {href}")
 
                 # Call the rest of the functions with the canonical link
-                save_path = "/Users/khalid/Desktop/video.mp4"
-                video_src = process_link(href, save_path)
+                video_src = process_link(href)
                 if video_src:
-                    download_video(video_src, save_path)
+                    return download_video(video_src)
                 else:
                     print("Failed to extract video source URL from the canonical link.")
             else:
@@ -123,7 +123,7 @@ def home(request):
     return render(request, 'app/home.html')
 
 
-def process_link(video_link, save_path):
+def process_link(video_link):
     """Processes the video link, handles redirection if necessary, and extracts the video source URL."""
     redirected_link = follow_redirection(video_link)
     if redirected_link:
@@ -137,6 +137,7 @@ def process_link(video_link, save_path):
 
     return video_src
 
+
 def follow_redirection(url):
     """Follows the redirection for the given URL and returns the final URL."""
     session = requests.Session()
@@ -147,6 +148,7 @@ def follow_redirection(url):
         return final_url
 
     return None
+
 
 def extract_video_src(video_link):
     """Extracts the video source URL from the given URL."""
@@ -164,24 +166,33 @@ def extract_video_src(video_link):
 
     return video_src
 
+
 def retrieve_html_code(url):
     """Retrieves the HTML code from the given URL."""
     response = requests.get(url)
     html_code = response.text
     return html_code
 
-def download_video(video_src, save_path):
-    """Downloads the video from the given source URL to the specified path."""
+
+def download_video(video_src):
+    """Streams the video from the given source URL and sends it as a response to the user's browser."""
     if video_src:
         response = requests.get(video_src, stream=True)
+
         if response.status_code == 200:
-            with open(save_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=1024):
-                    if chunk:
-                        f.write(chunk)
-            print(f"Successfully downloaded video to {save_path}")
+            # Set appropriate headers for the response to prompt download
+            file_size = int(response.headers['Content-Length'])
+            response = StreamingHttpResponse(
+                response.iter_content(chunk_size=8192),
+                content_type='video/mp4'
+            )
+            response['Content-Disposition'] = f'attachment; filename="video.mp4"'
+            response['Content-Length'] = file_size
+            return response
         else:
             print(f"Failed to download video from {video_src}")
     else:
         print("No valid video source URL to download.")
+        return render(request, 'app/home.html')
+
 
