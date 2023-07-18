@@ -85,43 +85,60 @@ import re
 from bs4 import BeautifulSoup
 from django.shortcuts import render
 from django.http import StreamingHttpResponse
+from fp.fp import FreeProxy 
+
+def get_working_proxy():
+    # Create an instance of FreeProxy
+    proxy_fetcher = FreeProxy()
+
+    # Fetch a random working proxy
+    proxy = proxy_fetcher.get()
+
+    return proxy
 
 def home(request):
     if request.method == 'POST':
         # Get the video link from the form
         video_link = request.POST.get('video_link')
 
-        # Set a custom user agent to mimic a browser
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36'
+        # Get a working proxy
+        proxy = get_working_proxy()
 
-        # Get the response from the URL, following redirections, and set the custom user agent
-        response = requests.get(video_link, headers={'User-Agent': user_agent}, allow_redirects=True)
+        # Set the proxy in the request headers
+        headers = {'http': proxy, 'https': proxy}
 
-        # Check if the request was successful (status code 200)
-        if response.status_code == 200:
-            # Get the HTML content of the page
-            html_content = response.text
+        try:
+            # Get the response from the URL using the proxy, following redirections
+            response = requests.get(video_link, headers=headers, allow_redirects=True)
 
-            # Parse the HTML content using BeautifulSoup
-            soup = BeautifulSoup(html_content, 'html.parser')
+            # Check if the request was successful (status code 200)
+            if response.status_code == 200:
+                # Get the HTML content of the page
+                html_content = response.text
 
-            # Find the canonical link in the webpage code
-            canonical_link = soup.find('link', {'rel': 'canonical'})
+                # Parse the HTML content using BeautifulSoup
+                soup = BeautifulSoup(html_content, 'html.parser')
 
-            if canonical_link:
-                href = canonical_link.get('href')
-                print(f"Canonical link found: {href}")
+                # Find the canonical link in the webpage code
+                canonical_link = soup.find('link', {'rel': 'canonical'})
 
-                # Call the rest of the functions with the canonical link
-                video_src = process_link(href)
-                if video_src:
-                    return download_video(video_src)
+                if canonical_link:
+                    href = canonical_link.get('href')
+                    print(f"Canonical link found: {href}")
+
+                    # Call the rest of the functions with the canonical link
+                    video_src = process_link(href)
+                    if video_src:
+                        return download_video(video_src)
+                    else:
+                        print("Failed to extract video source URL from the canonical link.")
                 else:
-                    print("Failed to extract video source URL from the canonical link.")
+                    print("No canonical link found in the webpage.")
             else:
-                print("No canonical link found in the webpage.")
-        else:
-            print(f"Failed to download the webpage. Status code: {response.status_code}")
+                print(f"Failed to download the webpage. Status code: {response.status_code}")
+
+        except Exception as e:
+            print(f"Error occurred: {e}")
 
     return render(request, 'app/home.html')
 
