@@ -192,7 +192,7 @@ def download_video(video_src):
         else:
             print(f"Failed to download video from {video_src}")
     else:
-        print("No valid video source URL to download.")
+        print("No valid video source URL to download sorry.")
         return render(request, 'app/home.html')
 
 
