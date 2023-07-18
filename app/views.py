@@ -91,8 +91,11 @@ def home(request):
         # Get the video link from the form
         video_link = request.POST.get('video_link')
 
-        # Get the response from the URL, following redirections
-        response = requests.get(video_link, allow_redirects=True)
+        # Set a custom user agent to mimic a browser
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36'
+
+        # Get the response from the URL, following redirections, and set the custom user agent
+        response = requests.get(video_link, headers={'User-Agent': user_agent}, allow_redirects=True)
 
         # Check if the request was successful (status code 200)
         if response.status_code == 200:
