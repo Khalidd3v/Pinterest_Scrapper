@@ -5,8 +5,10 @@ certifi==2023.5.7
 charset-normalizer==3.2.0
 Django==4.2.3
 exceptiongroup==1.1.2
+free-proxy==1.1.1
 h11==0.14.0
 idna==3.4
+lxml==4.9.3
 outcome==1.2.0
 PySocks==1.7.1
 requests==2.31.0
